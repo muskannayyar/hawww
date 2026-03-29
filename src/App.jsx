@@ -277,7 +277,8 @@ function Onboarding({ onDone }) {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("room");
-    if (code) { setRoomCode(code.toUpperCase()); setMode("join"); setStep(2); }
+    // If joining via link, pre-fill the code but send them to step 1 (name/avatar) first
+    if (code) { setRoomCode(code.toUpperCase()); setMode("join"); setStep(1); }
   }, []);
 
   const createRoom = async () => {
@@ -349,6 +350,17 @@ function Onboarding({ onDone }) {
             <h2 style={{fontSize:28,fontWeight:800,marginBottom:4}}>who are you?</h2>
             <p style={{color:C.textMuted,fontSize:14,marginBottom:20}}>set your vibe</p>
 
+            {/* Show joining banner if coming via link */}
+            {mode === "join" && roomCode && (
+              <div style={{background:`${C.green}15`,border:`1px solid ${C.green}30`,borderRadius:14,padding:"10px 14px",marginBottom:16,display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:16}}>🔗</span>
+                <div>
+                  <div style={{fontSize:12,fontWeight:700,color:C.green}}>joining room {roomCode}</div>
+                  <div style={{fontSize:11,color:C.textMuted}}>set up your profile first</div>
+                </div>
+              </div>
+            )}
+
             {/* Profile photo upload */}
             <div style={{display:"flex",flexDirection:"column",alignItems:"center",marginBottom:20}}>
               <PhotoUpload onPhoto={setPhoto} label="add profile photo" size={80} />
@@ -366,7 +378,7 @@ function Onboarding({ onDone }) {
 
             <input value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key==="Enter"&&(name.trim()?setStep(2):setError("Need a name!"))} placeholder="your name..." style={{width:"100%",background:C.surface,border:`1px solid ${C.border}`,borderRadius:16,padding:"14px 18px",fontSize:16,color:C.text,outline:"none",marginBottom:12}} />
             {error && <p style={{color:C.red,fontSize:13,marginBottom:12}}>{error}</p>}
-            <PrimaryBtn onClick={() => { if(!name.trim()) return setError("Need a name!"); setError(""); setStep(2); }}>next →</PrimaryBtn>
+            <PrimaryBtn onClick={() => { if(!name.trim()) return setError("Need a name!"); setError(""); setStep(2); }}>{mode === "join" ? "join room →" : "next →"}</PrimaryBtn>
           </div>
         )}
 
