@@ -7,6 +7,18 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const AVATARS = ["🧑‍💻","🧕","🧙","🦸","🧜","🧚","🐺","🦊","🐻","🐼","🦁","🐯","🐸","🦋","🐙"];
 const NUDGE_MSGS = ["hey put the phone down 👀","skill issue 💀","touch grass challenge unlocked 🌱","your screen time is giving 😬","bet you can't go 30 mins without looking 👾"];
+const ROASTS = [
+  "bro is COOKED 💀",
+  "skill issue detected 📡",
+  "your thumbs need a break fr",
+  "this is not the way 😔",
+  "touch grass. NOW. 🌱",
+  "ur phone called. it says pls stop.",
+  "even your screen is tired of you",
+  "chronically online ahh behaviour",
+  "your ancestors are disappointed 💀",
+  "log off bestie. we're begging.",
+];
 
 const fmt = (m) => m >= 60 ? `${Math.floor(m/60)}h ${m%60}m` : `${m}m`;
 const genCode = () => Math.random().toString(36).substring(2,5).toUpperCase() + Math.random().toString(36).substring(2,5).toUpperCase();
@@ -39,6 +51,17 @@ const css = `
   @keyframes popIn { 0% { transform:scale(0.7); opacity:0; } 70% { transform:scale(1.08); } 100% { transform:scale(1); opacity:1; } }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.35; } }
   @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 15%{transform:translateX(-8px) rotate(-2deg)} 30%{transform:translateX(8px) rotate(2deg)} 45%{transform:translateX(-6px)} 60%{transform:translateX(6px)} 75%{transform:translateX(-3px)} }
+  @keyframes bigPulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.08);opacity:0.85} }
+  @keyframes glitch {
+    0%,100%{clip-path:inset(0 0 100% 0);transform:translate(0)}
+    10%{clip-path:inset(10% 0 60% 0);transform:translate(-4px,0)}
+    20%{clip-path:inset(50% 0 20% 0);transform:translate(4px,0)}
+    30%{clip-path:inset(20% 0 70% 0);transform:translate(-2px,0)}
+    40%{clip-path:inset(0 0 100% 0);transform:translate(0)}
+  }
+  @keyframes interventionIn { from{opacity:0;transform:scale(1.05)} to{opacity:1;transform:scale(1)} }
+  @keyframes scanline { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
   @keyframes confettiFall {
     0%   { transform: translateY(-10px) rotate(0deg);   opacity: 1; }
     100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
@@ -260,6 +283,120 @@ function ScreenTimeNote() {
         </div>
       </div>
     </Card>
+  );
+}
+
+// ── HAWWW INTERVENTION SCREEN ──
+function HawwwIntervention({ target, used, members, onDismiss }) {
+  const [roast] = useState(ROASTS[Math.floor(Math.random() * ROASTS.length)]);
+  const [tick, setTick] = useState(0);
+  const overBy = used - target.limit_mins;
+
+  useEffect(() => {
+    const t = setInterval(() => setTick(x => x + 1), 800);
+    return () => clearInterval(t);
+  }, []);
+
+  // play a beep-like sound via Web Audio API
+  useEffect(() => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.15, 0.3].forEach(delay => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = 440;
+        osc.type = "square";
+        gain.gain.setValueAtTime(0.15, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.25);
+        osc.start(ctx.currentTime + delay);
+        osc.stop(ctx.currentTime + delay + 0.25);
+      });
+    } catch(e) {}
+  }, []);
+
+  return (
+    <div style={{
+      position:"fixed",inset:0,zIndex:99999,
+      background:"#000",
+      animation:"interventionIn 0.3s ease forwards",
+      display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+      overflow:"hidden",
+    }}>
+      {/* scanline effect */}
+      <div style={{position:"absolute",inset:0,pointerEvents:"none",overflow:"hidden",opacity:0.07}}>
+        <div style={{position:"absolute",width:"100%",height:3,background:"#fff",animation:"scanline 2s linear infinite"}} />
+      </div>
+
+      {/* red flashing bg */}
+      <div style={{
+        position:"absolute",inset:0,
+        background:`radial-gradient(circle at 50% 40%, #FF000044 0%, transparent 70%)`,
+        animation:"bigPulse 0.8s ease-in-out infinite",
+        pointerEvents:"none",
+      }} />
+
+      {/* giant HAWWW text */}
+      <div style={{
+        fontSize:"22vw",fontWeight:800,
+        letterSpacing:-4,lineHeight:0.85,
+        color:"#fff",
+        animation:`shake 0.6s ease-in-out ${tick%2===0?"":"reverse"} both`,
+        fontFamily:"'Bricolage Grotesque',sans-serif",
+        textAlign:"center",
+        position:"relative",
+        userSelect:"none",
+      }}>
+        {/* glitch layer */}
+        <div style={{position:"absolute",inset:0,color:"#FF3B30",animation:"glitch 1.5s steps(1) infinite",fontFamily:"inherit",fontSize:"inherit",fontWeight:"inherit"}}>HAWWW</div>
+        <div style={{position:"absolute",inset:0,color:"#5E5CE6",animation:"glitch 1.5s steps(1) infinite 0.5s",fontFamily:"inherit",fontSize:"inherit",fontWeight:"inherit"}}>HAWWW</div>
+        HAWWW
+      </div>
+
+      <div style={{fontSize:"10vw",marginTop:8,animation:"bigPulse 0.6s ease-in-out infinite"}}>👋</div>
+
+      {/* over by badge */}
+      <div style={{
+        marginTop:24,
+        background:"#FF3B30",
+        borderRadius:20,
+        padding:"10px 24px",
+        fontSize:18,fontWeight:800,color:"#fff",
+        animation:"shake 1.2s ease-in-out infinite",
+        fontFamily:"'JetBrains Mono',monospace",
+      }}>
+        +{fmt(overBy)} over on {target.icon} {target.app}
+      </div>
+
+      {/* roast text */}
+      <div style={{marginTop:16,fontSize:16,fontWeight:700,color:"rgba(255,255,255,0.7)",textAlign:"center",padding:"0 32px",lineHeight:1.5}}>
+        {roast}
+      </div>
+
+      {/* crew members who are on track — shaming */}
+      {members.length > 1 && (
+        <div style={{marginTop:20,display:"flex",gap:8,alignItems:"center"}}>
+          <div style={{fontSize:12,color:"rgba(255,255,255,0.4)",fontWeight:600}}>your crew is watching 👀</div>
+        </div>
+      )}
+
+      {/* dismiss */}
+      <button
+        onClick={onDismiss}
+        style={{
+          marginTop:40,
+          background:"rgba(255,255,255,0.1)",
+          border:"1px solid rgba(255,255,255,0.2)",
+          borderRadius:16,
+          padding:"14px 32px",
+          color:"rgba(255,255,255,0.5)",
+          fontSize:13,fontWeight:700,cursor:"pointer",
+          fontFamily:"'Bricolage Grotesque',sans-serif",
+        }}
+      >
+        ok ok i get it 🙈
+      </button>
+    </div>
   );
 }
 
@@ -518,18 +655,34 @@ function TargetsTab({ user, members, targets, setTargets, progress, setProgress,
   const [adding, setAdding] = useState(false);
   const [newApp, setNewApp] = useState({ name:"", icon:"📱", limit:30 });
   const [saving, setSaving] = useState(false);
+  const [editingProgress, setEditingProgress] = useState(null); // targetId being edited
+  const [inputVal, setInputVal] = useState("");
+  const [intervention, setIntervention] = useState(null); // {target, used}
 
   const getUsed = (targetId, userId) => (progress.find(x => x.target_id === targetId && x.user_id === userId)?.minutes_used || 0);
 
-  const updateProgress = async (targetId, delta) => {
+  const openEdit = (targetId) => {
+    const cur = getUsed(targetId, user.id);
+    setInputVal(String(cur));
+    setEditingProgress(targetId);
+  };
+
+  const saveProgress = async (targetId) => {
+    const mins = parseInt(inputVal, 10);
+    if (isNaN(mins) || mins < 0) { setEditingProgress(null); return; }
     const existing = progress.find(x => x.target_id === targetId && x.user_id === user.id);
-    const newVal = Math.max(0, (existing?.minutes_used || 0) + delta);
+    const target = targets.find(t => t.id === targetId);
     if (existing) {
-      await supabase.from("target_progress").update({ minutes_used: newVal }).eq("id", existing.id);
-      setProgress(p => p.map(x => x.id === existing.id ? {...x, minutes_used: newVal} : x));
+      await supabase.from("target_progress").update({ minutes_used: mins }).eq("id", existing.id);
+      setProgress(p => p.map(x => x.id === existing.id ? {...x, minutes_used: mins} : x));
     } else {
-      const { data } = await supabase.from("target_progress").insert({ target_id: targetId, user_id: user.id, minutes_used: Math.max(0,delta) }).select().single();
+      const { data } = await supabase.from("target_progress").insert({ target_id: targetId, user_id: user.id, minutes_used: mins }).select().single();
       if (data) setProgress(p => [...p, data]);
+    }
+    setEditingProgress(null);
+    // Trigger intervention if over limit
+    if (target && mins > target.limit_mins) {
+      setIntervention({ target, used: mins });
     }
   };
 
@@ -543,9 +696,18 @@ function TargetsTab({ user, members, targets, setTargets, progress, setProgress,
 
   return (
     <div style={{padding:"16px 16px 0"}} className="fade-up">
+      {intervention && (
+        <HawwwIntervention
+          target={intervention.target}
+          used={intervention.used}
+          members={members}
+          onDismiss={() => setIntervention(null)}
+        />
+      )}
+
       <BackBtn onBack={onBack} />
       <h2 style={{fontSize:22,fontWeight:800,marginBottom:4}}>screen time</h2>
-      <p style={{color:C.textMuted,fontSize:13,marginBottom:12}}>everyone's usage · today</p>
+      <p style={{color:C.textMuted,fontSize:13,marginBottom:12}}>tap your time to update it</p>
 
       <ScreenTimeNote />
 
@@ -561,6 +723,7 @@ function TargetsTab({ user, members, targets, setTargets, progress, setProgress,
           {members.map(m => {
             const used = getUsed(t.id, m.id);
             const isMe = m.id === user.id;
+            const isEditing = isMe && editingProgress === t.id;
             return (
               <div key={m.id} style={{marginBottom:10}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
@@ -569,16 +732,47 @@ function TargetsTab({ user, members, targets, setTargets, progress, setProgress,
                     <span style={{fontSize:12,fontWeight:700,color:isMe?C.accent2:C.text}}>{isMe?"you":m.name}</span>
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    {isMe && (
-                      <div style={{display:"flex",gap:4}}>
-                        <button onClick={() => updateProgress(t.id,-15)} style={{background:C.surface3,border:"none",borderRadius:8,width:26,height:26,color:C.text,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>−</button>
-                        <button onClick={() => updateProgress(t.id,15)} style={{background:C.surface3,border:"none",borderRadius:8,width:26,height:26,color:C.text,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>+</button>
+                    {isEditing ? (
+                      <div style={{display:"flex",alignItems:"center",gap:6}}>
+                        <input
+                          autoFocus
+                          type="number"
+                          value={inputVal}
+                          onChange={e => setInputVal(e.target.value)}
+                          onKeyDown={e => { if(e.key==="Enter") saveProgress(t.id); if(e.key==="Escape") setEditingProgress(null); }}
+                          style={{width:64,background:C.surface2,border:`1px solid ${C.accent}`,borderRadius:8,padding:"4px 8px",fontSize:13,color:C.text,outline:"none",textAlign:"center",fontFamily:"'JetBrains Mono',monospace"}}
+                        />
+                        <span style={{fontSize:11,color:C.textMuted}}>min</span>
+                        <button onClick={() => saveProgress(t.id)} style={{background:C.accent,border:"none",borderRadius:8,width:26,height:26,color:"#fff",cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>✓</button>
+                        <button onClick={() => setEditingProgress(null)} style={{background:C.surface3,border:"none",borderRadius:8,width:26,height:26,color:C.textMuted,cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
                       </div>
+                    ) : (
+                      <button
+                        onClick={() => isMe && openEdit(t.id)}
+                        style={{
+                          background: used > t.limit_mins ? `${C.red}20` : C.surface3,
+                          border: `1px solid ${used > t.limit_mins ? C.red+"55" : C.border}`,
+                          borderRadius:10, padding:"4px 12px",
+                          fontFamily:"'JetBrains Mono',monospace",
+                          fontSize:13,
+                          color: used > t.limit_mins ? C.red : C.green,
+                          cursor: isMe ? "pointer" : "default",
+                          fontWeight:700,
+                          display:"flex",alignItems:"center",gap:4,
+                        }}
+                      >
+                        {fmt(used)}
+                        {isMe && <span style={{fontSize:10,opacity:0.5}}>✏️</span>}
+                      </button>
                     )}
-                    <span style={{fontSize:12,fontFamily:"'JetBrains Mono',monospace",color:used>t.limit_mins?C.red:C.green,minWidth:36,textAlign:"right"}}>{fmt(used)}</span>
                   </div>
                 </div>
                 <ProgressBar value={used} max={t.limit_mins} color={t.color} />
+                {used > t.limit_mins && isMe && (
+                  <div style={{fontSize:10,color:C.red,fontWeight:700,marginTop:4,textAlign:"right"}}>
+                    +{fmt(used - t.limit_mins)} over limit 🔥
+                  </div>
+                )}
               </div>
             );
           })}
@@ -943,8 +1137,20 @@ export default function HawwwApp() {
   const [completions, setCompletions] = useState([]);
   const [toast, setToast] = useState({ show:false, msg:"" });
   const [userXp, setUserXp] = useState(0);
+  const [intervention, setIntervention] = useState(null);
 
   const showToast = (msg) => { setToast({show:true,msg}); setTimeout(() => setToast({show:false,msg:""}), 2500); };
+
+  // Check if any target is over limit and show intervention
+  const checkIntervention = (targets, progress, userId) => {
+    for (const t of targets) {
+      const p = progress.find(x => x.target_id === t.id && x.user_id === userId);
+      if (p && p.minutes_used > t.limit_mins) {
+        setIntervention({ target: t, used: p.minutes_used });
+        return;
+      }
+    }
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem("hawww_user");
@@ -967,6 +1173,8 @@ export default function HawwwApp() {
       if (c.data) setChallenges(c.data);
       if (p.data) setProgress(p.data);
       if (cp.data) setCompletions(cp.data);
+      // Check for over-limit targets on load
+      if (t.data && p.data) checkIntervention(t.data, p.data, user.id);
     };
     load();
     const ch = supabase.channel("rt")
@@ -1001,6 +1209,16 @@ export default function HawwwApp() {
     <div style={{fontFamily:"'Bricolage Grotesque',sans-serif",background:C.bg,minHeight:"100vh",maxWidth:430,margin:"0 auto",display:"flex",flexDirection:"column",color:C.text,position:"relative"}}>
       <style>{css}</style>
       <Toast msg={toast.msg} show={toast.show} />
+
+      {/* HAWWW Intervention */}
+      {intervention && (
+        <HawwwIntervention
+          target={intervention.target}
+          used={intervention.used}
+          members={members}
+          onDismiss={() => setIntervention(null)}
+        />
+      )}
 
       {/* Header */}
       <div style={{background:C.surface,borderBottom:`1px solid ${C.border}`,padding:"16px 20px 16px",flexShrink:0}}>
